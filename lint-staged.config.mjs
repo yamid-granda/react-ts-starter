@@ -1,0 +1,4 @@
+export default {
+  '*.{js,jsx,ts,tsx,json,jsonc,css}':
+    'biome check --write --no-errors-on-unmatched --files-ignore-unknown=true',
+}

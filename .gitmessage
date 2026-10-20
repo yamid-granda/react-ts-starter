@@ -1,0 +1,10 @@
+# <type>(<scope>): <subject>
+#
+# Types: feat, fix, docs, style, refactor, perf, test, build, ci, chore, revert
+# Scope: optional, lower-case, e.g. button, storybook, deps
+# Subject: imperative mood, lower-case, no trailing period, max 100 chars
+#
+# Example:
+#   feat(button): add secondary variant
+#
+#   Explain the motivation and note any breaking changes below.
