@@ -27,5 +27,5 @@
       "@/*": ["./src/*"]
     }
   },
-  "include": ["src", "tests", "playwright/gallery"]
+  "include": ["src", "playwright/gallery"]
 }

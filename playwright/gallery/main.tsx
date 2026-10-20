@@ -13,7 +13,7 @@ const modules = import.meta.glob<Record<string, unknown>>('/src/**/*.story.tsx',
 
 function toStoryId(file: string) {
   const path = file.replace(/^\/src\//, '').replace(/\.story\.tsx$/, '')
-  const segments = path.split('/')
+  const segments = path.split('/').filter((segment) => segment !== 'tests')
   const last = segments.at(-1)
   const previous = segments.at(-2)
 

@@ -8,7 +8,7 @@ export default mergeConfig(
       environment: 'jsdom',
       globals: true,
       setupFiles: ['./src/test/setup.ts'],
-      include: ['src/**/*.{test,spec}.{ts,tsx}'],
+      include: ['src/**/*.test.{ts,tsx}'],
       clearMocks: true,
       restoreMocks: true,
       coverage: {
@@ -20,8 +20,8 @@ export default mergeConfig(
           'src/vite-env.d.ts',
           'src/test/**',
           'src/**/*.test.{ts,tsx}',
+          'src/**/tests/**',
           'src/**/*.stories.tsx',
-          'src/**/*.story.tsx',
         ],
         thresholds: {
           lines: 80,

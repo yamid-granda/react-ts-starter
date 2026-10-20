@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Button } from './Button'
+import { Button } from '../Button'
 
 export const Primary = () => <Button>Click me</Button>
 

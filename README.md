@@ -58,16 +58,17 @@ The app runs at <http://localhost:5173>. The Playwright component gallery lives 
 ├── src/
 │   ├── components/Button/
 │   │   ├── Button.tsx
-│   │   ├── Button.test.tsx     # Vitest + RTL
-│   │   ├── Button.stories.tsx  # Storybook
-│   │   └── Button.story.tsx    # Playwright gallery story
-│   ├── lib/cn.ts               # clsx + tailwind-merge
-│   ├── test/setup.ts           # jest-dom matchers + RTL cleanup
+│   │   ├── Button.stories.tsx        # Storybook
+│   │   └── tests/
+│   │       ├── Button.story.tsx      # Playwright gallery story
+│   │       ├── Button.test.tsx       # Vitest + RTL
+│   │       └── Button.spec.ts        # Playwright spec
+│   ├── lib/cn.ts                     # clsx + tailwind-merge
+│   ├── test/setup.ts                 # jest-dom matchers + RTL cleanup
 │   ├── App.tsx
 │   ├── App.test.tsx
 │   ├── index.css
 │   └── main.tsx
-├── tests/components/           # Playwright specs
 └── playwright.config.ts
 ```
 
@@ -81,7 +82,7 @@ There are three deliberately separate layers:
 | --- | --- | --- | --- |
 | Behavior | Vitest + RTL + user-event | `src/**/*.test.tsx` | jsdom |
 | Documentation | Storybook | `src/**/*.stories.tsx` | browser |
-| Real browser | Playwright `mount()` | `tests/components/*.spec.ts` | Chromium |
+| Real browser | Playwright `mount()` | `src/components/**/tests/*.spec.ts` | Chromium |
 
 ### Unit and behavior tests
 
@@ -91,7 +92,7 @@ Use Testing Library queries and `user-event`:
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { expect, it, vi } from 'vitest'
-import { Button } from './Button'
+import { Button } from '../Button'
 
 it('calls onClick', async () => {
   const user = userEvent.setup()
@@ -134,12 +135,13 @@ Playwright's component testing is a stable, framework-agnostic `mount()` fixture
 `@playwright/experimental-ct-*` package (those were removed). Instead, this project owns a tiny
 gallery page that Vite serves:
 
-- `src/**/*.story.tsx` exports one React component per scenario.
+- `src/**/tests/*.story.tsx` exports one React component per scenario.
 - `playwright/gallery/main.tsx` discovers those exports and exposes `window.mount()`.
-- `tests/components/*.spec.ts` calls `mount('Button/Primary')` and asserts against the page.
+- `src/**/tests/*.spec.ts` calls `mount('Button/Primary')` and asserts against the page.
 
-Story IDs are derived from the file path and export name. `src/components/Button/Button.story.tsx`
-becomes `components/Button/<Export>`, and unique suffixes such as `Button/Primary` also work.
+Story IDs are derived from the file path and export name. The `tests` segment is ignored, so
+`src/components/Button/tests/Button.story.tsx` becomes `components/Button/<Export>`, and unique
+suffixes such as `Button/Primary` also work.
 
 Use the story itself to record state that would otherwise be a callback crossing the
 Node/browser boundary:
