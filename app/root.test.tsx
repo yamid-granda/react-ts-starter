@@ -6,8 +6,10 @@ import { getTodos } from '@/services/api/tasks/getTodos'
 import { useCounterStore } from '@/stores/counter'
 import App from './root'
 import Home from './routes/_index'
-import Other from './routes/other'
-import Tasks from './routes/tasks'
+import OtherLayout from './routes/other/route'
+import Other from './routes/other._index/route'
+import OtherInnerPage from './routes/other.inner-page/route'
+import Tasks from './routes/tasks/route'
 
 vi.mock('@/services/api/tasks/getTodos', () => ({
   getTodos: vi.fn(),
@@ -22,7 +24,14 @@ function renderApp(initialEntries: string[] = ['/']) {
       Component: App,
       children: [
         { index: true, Component: Home },
-        { path: 'other', Component: Other },
+        {
+          path: 'other',
+          Component: OtherLayout,
+          children: [
+            { index: true, Component: Other },
+            { path: 'inner-page', Component: OtherInnerPage },
+          ],
+        },
         { path: 'tasks', Component: Tasks },
       ],
     },
@@ -87,9 +96,26 @@ describe('App', () => {
     ).toBeInTheDocument()
   })
 
+  it('navigates to the inner page inside the other section', async () => {
+    const user = userEvent.setup()
+    renderApp(['/other'])
+
+    await user.click(screen.getByRole('link', { name: 'Inner page' }))
+    expect(screen.getByRole('heading', { name: 'This is the inner page.' })).toBeInTheDocument()
+
+    await user.click(screen.getByRole('link', { name: /Back to other/ }))
+    expect(screen.getByRole('heading', { name: 'This is the other page.' })).toBeInTheDocument()
+  })
+
   it('renders the other page directly', () => {
     renderApp(['/other'])
 
     expect(screen.getByRole('heading', { name: 'This is the other page.' })).toBeInTheDocument()
+  })
+
+  it('renders the inner page directly', () => {
+    renderApp(['/other/inner-page'])
+
+    expect(screen.getByRole('heading', { name: 'This is the inner page.' })).toBeInTheDocument()
   })
 })

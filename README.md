@@ -72,8 +72,15 @@ TanStack Query demo at `/tasks`.
 │   │       └── Button.spec.ts        # Playwright spec
 │   ├── routes/
 │   │   ├── _index.tsx                 # /
-│   │   ├── other.tsx                  # /other
-│   │   └── tasks.tsx                  # /tasks
+│   │   ├── other/
+│   │   │   └── route.tsx              # /other layout
+│   │   ├── other._index/
+│   │   │   └── route.tsx              # /other
+│   │   ├── other.inner-page/
+│   │   │   └── route.tsx              # /other/inner-page
+│   │   └── tasks/
+│   │       ├── route.tsx              # /tasks
+│   │       └── tests/route.test.tsx
 │   ├── services/
 │   │   └── api/tasks/
 │   │       ├── types.ts               # shared Todo type
@@ -103,14 +110,16 @@ live at the domain root.
 
 ## Routing
 
-Routes are discovered from files in `app/routes/` through
+Routes are discovered from files and folders in `app/routes/` through
 [`@react-router/fs-routes`](https://reactrouter.com/how-to/file-route-conventions):
 
 | File | URL |
 | --- | --- |
 | `app/routes/_index.tsx` | `/` |
-| `app/routes/other.tsx` | `/other` |
-| `app/routes/tasks.tsx` | `/tasks` |
+| `app/routes/other/route.tsx` | layout for `/other` |
+| `app/routes/other._index/route.tsx` | `/other` |
+| `app/routes/other.inner-page/route.tsx` | `/other/inner-page` (child of `other/route.tsx`) |
+| `app/routes/tasks/route.tsx` | `/tasks` |
 | `app/routes/blog.post.tsx` | `/blog/post` |
 | `app/routes/blog.$slug.tsx` | `/blog/:slug` |
 | `app/routes/_auth.login.tsx` | `/login` (inside `_auth.tsx`) |
@@ -130,9 +139,17 @@ export default flatRoutes({
 Keep tests and stories outside `app/routes/` (or use a folder with a `route.tsx` inside) so they
 are not treated as routes.
 
+Routes can be files or folders. A route folder uses `route.tsx` as its module, and other files in
+that folder are not routes, so tests and helpers can live next to the route. For example,
+`tasks/route.tsx` is the `/tasks` route and `tasks/tests/route.test.tsx` is ignored by the router.
+The folder or file name defines the URL: `other.inner-page/route.tsx` is the child route
+`/other/inner-page`, while `other._index/route.tsx` is the `/other` index rendered inside the
+`<Outlet />` of `other/route.tsx`. The `other/route.tsx` layout provides the Overview / Inner page
+sub-nav for both routes.
+
 `react-router.config.ts` sets `ssr: false`, so `pnpm build` produces a static SPA in `build/client`
 plus a generated `index.html`. Deploy that directory with a rewrite from every path to
-`index.html` so deep links such as `/other` work:
+`index.html` so deep links such as `/other/inner-page` work:
 
 ```
 /*    /index.html   200

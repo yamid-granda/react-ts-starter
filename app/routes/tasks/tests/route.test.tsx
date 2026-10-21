@@ -3,7 +3,7 @@ import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { getTodos } from '@/services/api/tasks/getTodos'
-import Tasks from './tasks'
+import Tasks from '../route'
 
 vi.mock('@/services/api/tasks/getTodos', () => ({
   getTodos: vi.fn(),
