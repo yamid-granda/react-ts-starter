@@ -23,9 +23,10 @@
     "noUncheckedSideEffectImports": true,
     "noUncheckedIndexedAccess": true,
 
+    "rootDirs": [".", "./.react-router/types"],
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./app/*"]
     }
   },
-  "include": ["src", "playwright/gallery"]
+  "include": ["app", ".react-router/types/**/*", "playwright/gallery"]
 }

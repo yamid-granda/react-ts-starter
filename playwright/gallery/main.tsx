@@ -1,13 +1,13 @@
 import { type ComponentType, StrictMode } from 'react'
 import { flushSync } from 'react-dom'
 import { createRoot, type Root } from 'react-dom/client'
-import '../../src/index.css'
+import '../../app/app.css'
 
 type StoryProps = Record<string, unknown>
 type Story = ComponentType<StoryProps>
 type MountOptions = { story: string; props?: StoryProps }
 
-const modules = import.meta.glob<Record<string, unknown>>('/src/**/*.story.tsx', {
+const modules = import.meta.glob<Record<string, unknown>>('/app/**/*.story.tsx', {
   eager: true,
 })
 

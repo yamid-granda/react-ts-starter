@@ -1,10 +1,10 @@
 import { defineConfig, devices } from '@playwright/test'
 
-const port = 5173
+const port = 5175
 const baseURL = `http://localhost:${port}/playwright/gallery/index.html`
 
 export default defineConfig({
-  testDir: './src',
+  testDir: './app',
   testMatch: '**/tests/*.spec.ts',
   fullyParallel: true,
   forbidOnly: Boolean(process.env.CI),
@@ -26,7 +26,7 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: `pnpm dev --port ${port} --strictPort`,
+    command: `pnpm exec vite --config vite.playwright.config.ts --port ${port} --strictPort`,
     url: baseURL,
     reuseExistingServer: !process.env.CI,
     stdout: 'ignore',

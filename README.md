@@ -3,11 +3,13 @@
 A small, opinionated frontend scaffold with the tooling already wired together:
 
 - **React 19** + **TypeScript 7** + **Vite 8**
+- **React Router 8** in framework mode with file-based routing and SPA output
 - **Tailwind CSS 4** via `@tailwindcss/vite` (CSS-first configuration)
 - **Biome 2** for formatting, linting and import sorting
 - **Storybook 10** for component documentation
 - **Vitest 5** + **Testing Library** + **jsdom** for fast behavior tests
 - **Playwright 1.64** for real-browser component tests
+- **Zustand 5** for state management
 - **commitlint** + **Husky** + **lint-staged** for conventional commits
 
 ## Requirements
@@ -23,17 +25,19 @@ pnpm browsers   # downloads Chromium for Playwright
 pnpm dev
 ```
 
-The app runs at <http://localhost:5173>. The Playwright component gallery lives at
-<http://localhost:5173/playwright/gallery/index.html>.
+The app runs at <http://localhost:5173> with a home page at `/` and a dummy page at `/other`.
+`pnpm test:ct` starts a separate Vite server for the Playwright component gallery at
+<http://localhost:5175/playwright/gallery/index.html>.
 
 ## Scripts
 
 | Script | Description |
 | --- | --- |
-| `pnpm dev` | Start the Vite dev server |
-| `pnpm build` | Type-check and build for production |
-| `pnpm preview` | Preview the production build |
-| `pnpm typecheck` | Run the TypeScript project build (`tsc -b`) |
+| `pnpm dev` | Start the React Router dev server |
+| `pnpm build` | Type-check and build for production into `build/client` |
+| `pnpm preview` | Preview the production SPA build |
+| `pnpm typecheck` | Generate route types and run the TypeScript build |
+| `pnpm typegen` | Generate React Router route types only |
 | `pnpm lint` | Check formatting and lint rules with Biome |
 | `pnpm lint:fix` | Apply Biome's safe fixes |
 | `pnpm format` | Format all supported files |
@@ -54,8 +58,10 @@ The app runs at <http://localhost:5173>. The Playwright component gallery lives 
 .
 ├── .husky/                     # pre-commit and commit-msg hooks
 ├── .storybook/                 # Storybook configuration
-├── playwright/gallery/         # Playwright component gallery
-├── src/
+├── app/
+│   ├── routes/
+│   │   ├── _index.tsx                 # /
+│   │   └── other.tsx                  # /other
 │   ├── components/Button/
 │   │   ├── Button.tsx
 │   │   ├── Button.stories.tsx        # Storybook
@@ -64,15 +70,58 @@ The app runs at <http://localhost:5173>. The Playwright component gallery lives 
 │   │       ├── Button.test.tsx       # Vitest + RTL
 │   │       └── Button.spec.ts        # Playwright spec
 │   ├── lib/cn.ts                     # clsx + tailwind-merge
+│   ├── stores/counter.ts             # Zustand store
 │   ├── test/setup.ts                 # jest-dom matchers + RTL cleanup
-│   ├── App.tsx
-│   ├── App.test.tsx
-│   ├── index.css
-│   └── main.tsx
+│   ├── app.css
+│   ├── root.tsx                      # document shell, nav, <Outlet />
+│   ├── root.test.tsx
+│   └── routes.ts                     # file-based route config
+├── playwright/gallery/         # Playwright component gallery
+├── react-router.config.ts      # SPA mode (`ssr: false`)
+├── vite.playwright.config.ts   # plain Vite config for the gallery
 └── playwright.config.ts
 ```
 
-The `@/` alias points at `src/` in TypeScript, Vite, Vitest and Playwright.
+The `@/` alias points at `app/` in TypeScript, Vite, Vitest and Playwright.
+
+## Routing
+
+Routes are discovered from files in `app/routes/` through
+[`@react-router/fs-routes`](https://reactrouter.com/how-to/file-route-conventions):
+
+| File | URL |
+| --- | --- |
+| `app/routes/_index.tsx` | `/` |
+| `app/routes/other.tsx` | `/other` |
+| `app/routes/blog.post.tsx` | `/blog/post` |
+| `app/routes/blog.$slug.tsx` | `/blog/:slug` |
+| `app/routes/_auth.login.tsx` | `/login` (inside `_auth.tsx`) |
+
+`app/root.tsx` is the document shell and shared layout. It renders the nav and an `<Outlet />`
+where the matched route appears. `app/routes.ts` wires up the file convention:
+
+```ts
+import type { RouteConfig } from '@react-router/dev/routes'
+import { flatRoutes } from '@react-router/fs-routes'
+
+export default flatRoutes({
+  ignoredRouteFiles: ['**/*.test.*', '**/*.stories.*'],
+}) satisfies RouteConfig
+```
+
+Keep tests and stories outside `app/routes/` (or use a folder with a `route.tsx` inside) so they
+are not treated as routes.
+
+`react-router.config.ts` sets `ssr: false`, so `pnpm build` produces a static SPA in `build/client`
+plus a generated `index.html`. Deploy that directory with a rewrite from every path to
+`index.html` so deep links such as `/other` work:
+
+```
+/*    /index.html   200
+```
+
+Unknown paths fall through to React Router's default error page; this starter does not define a
+custom 404 route.
 
 ## Testing strategy
 
@@ -80,9 +129,9 @@ There are three deliberately separate layers:
 
 | Layer | Tool | Files | Environment |
 | --- | --- | --- | --- |
-| Behavior | Vitest + RTL + user-event | `src/**/*.test.tsx` | jsdom |
-| Documentation | Storybook | `src/**/*.stories.tsx` | browser |
-| Real browser | Playwright `mount()` | `src/components/**/tests/*.spec.ts` | Chromium |
+| Behavior | Vitest + RTL + user-event | `app/**/*.test.tsx` | jsdom |
+| Documentation | Storybook | `app/**/*.stories.tsx` | browser |
+| Real browser | Playwright `mount()` | `app/components/**/tests/*.spec.ts` | Chromium |
 
 ### Unit and behavior tests
 
@@ -105,7 +154,26 @@ it('calls onClick', async () => {
 })
 ```
 
-`@testing-library/jest-dom` matchers are registered globally in `src/test/setup.ts`.
+`@testing-library/jest-dom` matchers are registered globally in `app/test/setup.ts`.
+
+Route components and navigation are tested with React Router's `createRoutesStub`:
+
+```tsx
+import { createRoutesStub } from 'react-router'
+
+const Stub = createRoutesStub([
+  {
+    path: '/',
+    Component: App,
+    children: [
+      { index: true, Component: Home },
+      { path: 'other', Component: Other },
+    ],
+  },
+])
+
+render(<Stub initialEntries={['/']} />)
+```
 
 ### Storybook
 
@@ -133,14 +201,14 @@ to `error` when you are ready to enforce it.
 
 Playwright's component testing is a stable, framework-agnostic `mount()` fixture. There is no
 `@playwright/experimental-ct-*` package (those were removed). Instead, this project owns a tiny
-gallery page that Vite serves:
+gallery page that a separate Vite config serves:
 
-- `src/**/tests/*.story.tsx` exports one React component per scenario.
+- `app/**/tests/*.story.tsx` exports one React component per scenario.
 - `playwright/gallery/main.tsx` discovers those exports and exposes `window.mount()`.
-- `src/**/tests/*.spec.ts` calls `mount('Button/Primary')` and asserts against the page.
+- `app/**/tests/*.spec.ts` calls `mount('Button/Primary')` and asserts against the page.
 
 Story IDs are derived from the file path and export name. The `tests` segment is ignored, so
-`src/components/Button/tests/Button.story.tsx` becomes `components/Button/<Export>`, and unique
+`app/components/Button/tests/Button.story.tsx` becomes `components/Button/<Export>`, and unique
 suffixes such as `Button/Primary` also work.
 
 Use the story itself to record state that would otherwise be a callback crossing the
@@ -169,11 +237,32 @@ test('counts clicks', async ({ mount }) => {
 })
 ```
 
-Playwright starts the Vite dev server automatically and reuses an existing one locally.
+Playwright starts the gallery's Vite server automatically with `vite.playwright.config.ts` and
+reuses an existing one locally.
+
+## State management
+
+Global state lives in Zustand stores under `app/stores/`. Select state and actions separately so
+components only re-render for the values they use:
+
+```ts
+import { useCounterStore } from '@/stores/counter'
+
+const count = useCounterStore((state) => state.count)
+const increment = useCounterStore((state) => state.increment)
+```
+
+Stores are module-level, so reset them between tests:
+
+```ts
+beforeEach(() => {
+  useCounterStore.setState(useCounterStore.getInitialState(), true)
+})
+```
 
 ## Styling
 
-Tailwind 4 is configured entirely in `src/index.css`:
+Tailwind 4 is configured entirely in `app/app.css`:
 
 ```css
 @import "tailwindcss";
@@ -185,7 +274,7 @@ Tailwind 4 is configured entirely in `src/index.css`:
 ```
 
 There is no `tailwind.config.js`. Theme variables generate utilities (`rounded-card`,
-`shadow-card`). Use the `cn()` helper in `src/lib/cn.ts` to merge conditional classes.
+`shadow-card`). Use the `cn()` helper in `app/lib/cn.ts` to merge conditional classes.
 
 Biome's `useSortedClasses` rule is enabled to keep Tailwind classes in a consistent order. It is
 a nursery rule and its fix is marked unsafe, so `pnpm lint:fix` will not reorder classes. To apply
@@ -245,6 +334,8 @@ pnpm test:ct
 ## Notes
 
 - `pnpm install` runs Husky's `prepare` script, so the project must be a git repository.
+- React Router generates route types in `.react-router/`; the directory is ignored and regenerated
+  by `pnpm dev`, `pnpm typecheck` and `pnpm build`.
 - Vitest runs in jsdom; Playwright runs in Chromium. Keep browser-only behavior in Playwright tests.
 - Storybook is documentation-only by default. The Vitest addon can be added later if you want
   stories and play functions to run as browser tests.

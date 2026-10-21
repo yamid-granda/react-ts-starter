@@ -8,10 +8,11 @@
     "node": ">=24"
   },
   "scripts": {
-    "dev": "vite",
-    "build": "tsc -b && vite build",
-    "preview": "vite preview",
-    "typecheck": "tsc -b",
+    "dev": "react-router dev",
+    "build": "pnpm typecheck && react-router build",
+    "preview": "vite preview --outDir build/client",
+    "typecheck": "react-router typegen && tsc -b",
+    "typegen": "react-router typegen",
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
     "format": "biome format --write .",
@@ -25,19 +26,25 @@
     "test:ct:report": "playwright show-report",
     "browsers": "playwright install chromium",
     "prepare": "husky",
-    "validate": "biome check . && tsc -b && vitest run"
+    "validate": "biome check . && pnpm typecheck && vitest run"
   },
   "dependencies": {
+    "@react-router/node": "^8.5.0",
     "clsx": "^2.1.1",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
-    "tailwind-merge": "^3.7.0"
+    "react-router": "^8.5.0",
+    "tailwind-merge": "^3.7.0",
+    "zustand": "^5.0.15",
+    "isbot": "^5"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.15",
     "@commitlint/cli": "^21.2.4",
     "@commitlint/config-conventional": "^21.2.4",
     "@playwright/test": "^1.64.1",
+    "@react-router/dev": "^8.5.0",
+    "@react-router/fs-routes": "^8.5.0",
     "@storybook/addon-a11y": "^10.6.3",
     "@storybook/addon-docs": "^10.6.3",
     "@storybook/react-vite": "^10.6.3",

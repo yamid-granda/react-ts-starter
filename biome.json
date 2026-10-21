@@ -9,6 +9,8 @@
     "includes": [
       "**",
       "!**/dist",
+      "!**/build",
+      "!**/.react-router",
       "!**/coverage",
       "!**/storybook-static",
       "!**/playwright-report",

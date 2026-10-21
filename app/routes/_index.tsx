@@ -1,5 +1,5 @@
-import { useState } from 'react'
 import { Button } from '@/components/Button/Button'
+import { useCounterStore } from '@/stores/counter'
 
 const testingLayers = [
   {
@@ -19,11 +19,17 @@ const testingLayers = [
   },
 ] as const
 
-export function App() {
-  const [count, setCount] = useState(0)
+export default function Home() {
+  const { count, increment, reset } = useCounterStore()
 
   return (
-    <main className="mx-auto flex min-h-dvh w-full max-w-3xl flex-col justify-center gap-12 px-6 py-16">
+    <>
+      <title>React + TypeScript Starter</title>
+      <meta
+        name="description"
+        content="React, TypeScript, Tailwind, Storybook, Vitest, Playwright and React Router starter."
+      />
+
       <header className="space-y-4">
         <p className="font-mono text-indigo-600 text-xs uppercase tracking-[0.18em]">
           React + TypeScript
@@ -32,8 +38,8 @@ export function App() {
           A starter with the boring parts already done.
         </h1>
         <p className="max-w-xl text-base text-slate-600 leading-7">
-          Vite, Tailwind CSS, Biome, Storybook, Vitest and Playwright are wired together. Replace
-          this page and keep the guardrails.
+          Vite, Tailwind CSS, Biome, Storybook, Vitest, Playwright and React Router are wired
+          together. Replace this page and keep the guardrails.
         </p>
       </header>
 
@@ -47,12 +53,12 @@ export function App() {
               Interactive demo
             </h2>
             <p className="mt-1 text-slate-500 text-sm">
-              State, user-event and Playwright stories all point at this component.
+              Zustand state, user-event and Playwright stories all point at this component.
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <Button onClick={() => setCount((value) => value + 1)}>Count: {count}</Button>
-            <Button variant="secondary" onClick={() => setCount(0)}>
+            <Button onClick={() => increment()}>Count: {count}</Button>
+            <Button variant="secondary" onClick={() => reset()}>
               Reset
             </Button>
           </div>
@@ -80,6 +86,6 @@ export function App() {
       <footer className="font-mono text-slate-500 text-xs">
         <p>pnpm storybook · pnpm test:ct · pnpm validate</p>
       </footer>
-    </main>
+    </>
   )
 }

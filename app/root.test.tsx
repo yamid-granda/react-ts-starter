@@ -1,0 +1,63 @@
+import { render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import { createRoutesStub } from 'react-router'
+import { beforeEach, describe, expect, it } from 'vitest'
+import { useCounterStore } from '@/stores/counter'
+import App from './root'
+import Home from './routes/_index'
+import Other from './routes/other'
+
+function renderApp(initialEntries: string[] = ['/']) {
+  const Stub = createRoutesStub([
+    {
+      path: '/',
+      Component: App,
+      children: [
+        { index: true, Component: Home },
+        { path: 'other', Component: Other },
+      ],
+    },
+  ])
+
+  return render(<Stub initialEntries={initialEntries} />)
+}
+
+describe('App', () => {
+  beforeEach(() => {
+    useCounterStore.setState(useCounterStore.getInitialState(), true)
+  })
+
+  it('increments and resets the counter', async () => {
+    const user = userEvent.setup()
+    renderApp()
+
+    await user.click(screen.getByRole('button', { name: 'Count: 0' }))
+    expect(screen.getByRole('button', { name: 'Count: 1' })).toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: 'Reset' }))
+    expect(screen.getByRole('button', { name: 'Count: 0' })).toBeInTheDocument()
+  })
+
+  it('navigates between the home and other pages', async () => {
+    const user = userEvent.setup()
+    renderApp()
+
+    expect(
+      screen.getByRole('heading', { name: 'A starter with the boring parts already done.' }),
+    ).toBeInTheDocument()
+
+    await user.click(screen.getByRole('link', { name: 'Other' }))
+    expect(screen.getByRole('heading', { name: 'This is the other page.' })).toBeInTheDocument()
+
+    await user.click(screen.getByRole('link', { name: 'Home' }))
+    expect(
+      screen.getByRole('heading', { name: 'A starter with the boring parts already done.' }),
+    ).toBeInTheDocument()
+  })
+
+  it('renders the other page directly', () => {
+    renderApp(['/other'])
+
+    expect(screen.getByRole('heading', { name: 'This is the other page.' })).toBeInTheDocument()
+  })
+})
