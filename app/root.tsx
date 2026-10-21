@@ -1,6 +1,8 @@
-import type { ReactNode } from 'react'
+import { QueryClientProvider } from '@tanstack/react-query'
+import { type ReactNode, useState } from 'react'
 import { Links, Meta, NavLink, Outlet, Scripts, ScrollRestoration } from 'react-router'
 import { cn } from '@/lib/cn'
+import { createQueryClient } from '@/lib/query-client'
 import './app.css'
 
 export function Layout({ children }: { children: ReactNode }) {
@@ -33,22 +35,29 @@ function navLinkClass({ isActive }: { isActive: boolean }) {
 }
 
 export default function App() {
-  return (
-    <div className="mx-auto flex min-h-dvh w-full max-w-3xl flex-col px-6">
-      <header className="border-slate-200 border-b">
-        <nav aria-label="Primary" className="flex items-center gap-1 py-4">
-          <NavLink to="/" end className={navLinkClass}>
-            Home
-          </NavLink>
-          <NavLink to="/other" className={navLinkClass}>
-            Other
-          </NavLink>
-        </nav>
-      </header>
+  const [queryClient] = useState(createQueryClient)
 
-      <main className="flex flex-1 flex-col justify-center gap-12 py-12">
-        <Outlet />
-      </main>
-    </div>
+  return (
+    <QueryClientProvider client={queryClient}>
+      <div className="mx-auto flex min-h-dvh w-full max-w-3xl flex-col px-6">
+        <header className="border-slate-200 border-b">
+          <nav aria-label="Primary" className="flex items-center gap-1 py-4">
+            <NavLink to="/" end className={navLinkClass}>
+              Home
+            </NavLink>
+            <NavLink to="/other" className={navLinkClass}>
+              Other
+            </NavLink>
+            <NavLink to="/tasks" className={navLinkClass}>
+              Tasks
+            </NavLink>
+          </nav>
+        </header>
+
+        <main className="flex flex-1 flex-col justify-center gap-12 py-12">
+          <Outlet />
+        </main>
+      </div>
+    </QueryClientProvider>
   )
 }

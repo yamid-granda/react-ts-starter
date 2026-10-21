@@ -9,7 +9,8 @@ A small, opinionated frontend scaffold with the tooling already wired together:
 - **Storybook 10** for component documentation
 - **Vitest 5** + **Testing Library** + **jsdom** for fast behavior tests
 - **Playwright 1.64** for real-browser component tests
-- **Zustand 5** for state management
+- **Zustand 5** for local state
+- **TanStack Query 5** for server state
 - **commitlint** + **Husky** + **lint-staged** for conventional commits
 
 ## Requirements
@@ -25,7 +26,8 @@ pnpm browsers   # downloads Chromium for Playwright
 pnpm dev
 ```
 
-The app runs at <http://localhost:5173> with a home page at `/` and a dummy page at `/other`.
+The app runs at <http://localhost:5173> with a home page at `/`, a dummy page at `/other` and a
+TanStack Query demo at `/tasks`.
 `pnpm test:ct` starts a separate Vite server for the Playwright component gallery at
 <http://localhost:5175/playwright/gallery/index.html>.
 
@@ -61,7 +63,8 @@ The app runs at <http://localhost:5173> with a home page at `/` and a dummy page
 ├── app/
 │   ├── routes/
 │   │   ├── _index.tsx                 # /
-│   │   └── other.tsx                  # /other
+│   │   ├── other.tsx                  # /other
+│   │   └── tasks.tsx                  # /tasks
 │   ├── components/Button/
 │   │   ├── Button.tsx
 │   │   ├── Button.stories.tsx        # Storybook
@@ -70,6 +73,8 @@ The app runs at <http://localhost:5173> with a home page at `/` and a dummy page
 │   │       ├── Button.test.tsx       # Vitest + RTL
 │   │       └── Button.spec.ts        # Playwright spec
 │   ├── lib/cn.ts                     # clsx + tailwind-merge
+│   ├── lib/query-client.ts           # TanStack Query client
+│   ├── lib/tasks-api.ts              # JSONPlaceholder fetcher
 │   ├── stores/counter.ts             # Zustand store
 │   ├── test/setup.ts                 # jest-dom matchers + RTL cleanup
 │   ├── app.css
@@ -93,6 +98,7 @@ Routes are discovered from files in `app/routes/` through
 | --- | --- |
 | `app/routes/_index.tsx` | `/` |
 | `app/routes/other.tsx` | `/other` |
+| `app/routes/tasks.tsx` | `/tasks` |
 | `app/routes/blog.post.tsx` | `/blog/post` |
 | `app/routes/blog.$slug.tsx` | `/blog/:slug` |
 | `app/routes/_auth.login.tsx` | `/login` (inside `_auth.tsx`) |
@@ -174,6 +180,9 @@ const Stub = createRoutesStub([
 
 render(<Stub initialEntries={['/']} />)
 ```
+
+Tests that render a query page wrap it in a fresh `QueryClientProvider` with retries disabled, and
+mock the API module or `fetch` so no network request is made.
 
 ### Storybook
 
@@ -259,6 +268,34 @@ beforeEach(() => {
   useCounterStore.setState(useCounterStore.getInitialState(), true)
 })
 ```
+
+## Server state (TanStack Query)
+
+Server state is handled by [TanStack Query](https://tanstack.com/query). A client is created once
+per app instance in `app/root.tsx` with `createQueryClient()` and provided through
+`QueryClientProvider`. The defaults are a 30 second stale time, one retry, and no refetch on window
+focus.
+
+Define query options next to the fetcher so components share the same key and types:
+
+```tsx
+import { queryOptions, useQuery } from '@tanstack/react-query'
+import { fetchTodos } from '@/lib/tasks-api'
+
+const todosQuery = queryOptions({
+  queryKey: ['todos'],
+  queryFn: fetchTodos,
+})
+
+const { data, isPending, isError, refetch } = useQuery(todosQuery)
+```
+
+The `/tasks` page is a complete example with loading, error, retry and refresh states. It calls the
+public JSONPlaceholder API, so running that page needs network access; the unit tests mock the API.
+Because the query is cached for 30 seconds, navigating away and back reuses the previous result.
+
+Use TanStack Query for remote data and keep Zustand for local UI state. React Router loaders are
+still available, but in this SPA setup the demo keeps data fetching inside the route component.
 
 ## Styling
 
