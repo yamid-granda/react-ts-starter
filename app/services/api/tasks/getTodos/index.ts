@@ -1,13 +1,8 @@
-export type Todo = {
-  userId: number
-  id: number
-  title: string
-  completed: boolean
-}
+import type { Todo } from '../types'
 
 export const TODOS_URL = 'https://jsonplaceholder.typicode.com/todos?_limit=6'
 
-export async function fetchTodos(): Promise<Todo[]> {
+export async function getTodos(): Promise<Todo[]> {
   const response = await fetch(TODOS_URL)
 
   if (!response.ok) {

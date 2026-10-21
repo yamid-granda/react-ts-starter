@@ -1,8 +1,8 @@
 import { QueryClientProvider } from '@tanstack/react-query'
 import { type ReactNode, useState } from 'react'
 import { Links, Meta, NavLink, Outlet, Scripts, ScrollRestoration } from 'react-router'
-import { cn } from '@/lib/cn'
-import { createQueryClient } from '@/lib/query-client'
+import { createQueryClient } from '@/clients/serverState'
+import { cn } from '@/utils/cn'
 import './app.css'
 
 export function Layout({ children }: { children: ReactNode }) {

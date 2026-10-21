@@ -61,10 +61,8 @@ TanStack Query demo at `/tasks`.
 ├── .husky/                     # pre-commit and commit-msg hooks
 ├── .storybook/                 # Storybook configuration
 ├── app/
-│   ├── routes/
-│   │   ├── _index.tsx                 # /
-│   │   ├── other.tsx                  # /other
-│   │   └── tasks.tsx                  # /tasks
+│   ├── clients/
+│   │   └── serverState/index.ts       # TanStack Query client
 │   ├── components/Button/
 │   │   ├── Button.tsx
 │   │   ├── Button.stories.tsx        # Storybook
@@ -72,11 +70,19 @@ TanStack Query demo at `/tasks`.
 │   │       ├── Button.story.tsx      # Playwright gallery story
 │   │       ├── Button.test.tsx       # Vitest + RTL
 │   │       └── Button.spec.ts        # Playwright spec
-│   ├── lib/cn.ts                     # clsx + tailwind-merge
-│   ├── lib/query-client.ts           # TanStack Query client
-│   ├── lib/tasks-api.ts              # JSONPlaceholder fetcher
+│   ├── routes/
+│   │   ├── _index.tsx                 # /
+│   │   ├── other.tsx                  # /other
+│   │   └── tasks.tsx                  # /tasks
+│   ├── services/
+│   │   └── api/tasks/
+│   │       ├── types.ts               # shared Todo type
+│   │       └── getTodos/
+│   │           ├── index.ts           # JSONPlaceholder fetcher
+│   │           └── tests/getTodos.test.ts
 │   ├── stores/counter.ts             # Zustand store
 │   ├── test/setup.ts                 # jest-dom matchers + RTL cleanup
+│   ├── utils/cn.ts                   # clsx + tailwind-merge
 │   ├── app.css
 │   ├── root.tsx                      # document shell, nav, <Outlet />
 │   ├── root.test.tsx
@@ -88,6 +94,12 @@ TanStack Query demo at `/tasks`.
 ```
 
 The `@/` alias points at `app/` in TypeScript, Vite, Vitest and Playwright.
+
+The folders are layered: `routes/` compose pages, `components/` holds UI, `services/api/` holds
+API business operations, `clients/` wires technical clients such as TanStack Query, `utils/` holds
+generic helpers, and `stores/` holds local UI state. API operations live at
+`app/services/api/<domain>/<operation>/index.ts` with tests colocated in `tests/`; shared types
+live at the domain root.
 
 ## Routing
 
@@ -271,20 +283,20 @@ beforeEach(() => {
 
 ## Server state (TanStack Query)
 
-Server state is handled by [TanStack Query](https://tanstack.com/query). A client is created once
-per app instance in `app/root.tsx` with `createQueryClient()` and provided through
-`QueryClientProvider`. The defaults are a 30 second stale time, one retry, and no refetch on window
-focus.
+Server state is handled by [TanStack Query](https://tanstack.com/query). The client factory lives in
+`app/clients/serverState/index.ts` and is called once per app instance in `app/root.tsx`, then
+provided through `QueryClientProvider`. The defaults are a 30 second stale time, one retry, and no
+refetch on window focus.
 
-Define query options next to the fetcher so components share the same key and types:
+Define query options next to the API operation so components share the same key and types:
 
 ```tsx
 import { queryOptions, useQuery } from '@tanstack/react-query'
-import { fetchTodos } from '@/lib/tasks-api'
+import { getTodos } from '@/services/api/tasks/getTodos'
 
 const todosQuery = queryOptions({
   queryKey: ['todos'],
-  queryFn: fetchTodos,
+  queryFn: getTodos,
 })
 
 const { data, isPending, isError, refetch } = useQuery(todosQuery)
@@ -311,7 +323,7 @@ Tailwind 4 is configured entirely in `app/app.css`:
 ```
 
 There is no `tailwind.config.js`. Theme variables generate utilities (`rounded-card`,
-`shadow-card`). Use the `cn()` helper in `app/lib/cn.ts` to merge conditional classes.
+`shadow-card`). Use the `cn()` helper in `app/utils/cn.ts` to merge conditional classes.
 
 Biome's `useSortedClasses` rule is enabled to keep Tailwind classes in a consistent order. It is
 a nursery rule and its fix is marked unsafe, so `pnpm lint:fix` will not reorder classes. To apply

@@ -1,11 +1,11 @@
 import { queryOptions, useQuery } from '@tanstack/react-query'
 import { Button } from '@/components/Button/Button'
-import { cn } from '@/lib/cn'
-import { fetchTodos } from '@/lib/tasks-api'
+import { getTodos } from '@/services/api/tasks/getTodos'
+import { cn } from '@/utils/cn'
 
 const todosQuery = queryOptions({
   queryKey: ['todos'],
-  queryFn: fetchTodos,
+  queryFn: getTodos,
 })
 
 export default function Tasks() {

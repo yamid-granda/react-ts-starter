@@ -2,18 +2,18 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { createRoutesStub } from 'react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { fetchTodos } from '@/lib/tasks-api'
+import { getTodos } from '@/services/api/tasks/getTodos'
 import { useCounterStore } from '@/stores/counter'
 import App from './root'
 import Home from './routes/_index'
 import Other from './routes/other'
 import Tasks from './routes/tasks'
 
-vi.mock('@/lib/tasks-api', () => ({
-  fetchTodos: vi.fn(),
+vi.mock('@/services/api/tasks/getTodos', () => ({
+  getTodos: vi.fn(),
 }))
 
-const fetchTodosMock = vi.mocked(fetchTodos)
+const getTodosMock = vi.mocked(getTodos)
 
 function renderApp(initialEntries: string[] = ['/']) {
   const Stub = createRoutesStub([
@@ -34,8 +34,8 @@ function renderApp(initialEntries: string[] = ['/']) {
 describe('App', () => {
   beforeEach(() => {
     useCounterStore.setState(useCounterStore.getInitialState(), true)
-    fetchTodosMock.mockReset()
-    fetchTodosMock.mockResolvedValue([
+    getTodosMock.mockReset()
+    getTodosMock.mockResolvedValue([
       {
         userId: 1,
         id: 1,

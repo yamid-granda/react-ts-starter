@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { fetchTodos, TODOS_URL } from './tasks-api'
+import { getTodos, TODOS_URL } from '../index'
 
 const todos = [
   {
@@ -14,7 +14,7 @@ afterEach(() => {
   vi.unstubAllGlobals()
 })
 
-describe('fetchTodos', () => {
+describe('getTodos', () => {
   it('fetches todos from JSONPlaceholder', async () => {
     const fetchMock = vi.fn().mockResolvedValue({
       ok: true,
@@ -23,7 +23,7 @@ describe('fetchTodos', () => {
 
     vi.stubGlobal('fetch', fetchMock)
 
-    await expect(fetchTodos()).resolves.toEqual(todos)
+    await expect(getTodos()).resolves.toEqual(todos)
     expect(fetchMock).toHaveBeenCalledWith(TODOS_URL)
   })
 
@@ -36,6 +36,6 @@ describe('fetchTodos', () => {
       }),
     )
 
-    await expect(fetchTodos()).rejects.toThrow('Request failed with status 500')
+    await expect(getTodos()).rejects.toThrow('Request failed with status 500')
   })
 })
