@@ -1,10 +1,12 @@
-import { Button } from '@/components/Button/Button'
+import { TaskSearch } from '@/components/business/TaskSearch/TaskSearch'
+import { Button } from '@/components/common/Button/Button'
 import { useGetTasks } from '@/services/api/tasks/getTasks/useGetTasks'
-import { cn } from '@/utils/cn'
 
 export default function Tasks() {
   const { data, isPending, isError, error, isFetching, refetch } = useGetTasks()
   const todos = data ?? []
+
+  console.log('hello')
 
   return (
     <section className="space-y-6">
@@ -48,23 +50,7 @@ export default function Tasks() {
               </Button>
             </div>
           ) : (
-            <ul className="divide-y divide-slate-100">
-              {todos.map((todo) => (
-                <li key={todo.id} className="flex items-center justify-between gap-4 py-3">
-                  <span className="text-slate-700 text-sm">{todo.title}</span>
-                  <span
-                    className={cn(
-                      'shrink-0 rounded-full px-2.5 py-1 font-medium text-xs',
-                      todo.completed
-                        ? 'bg-emerald-50 text-emerald-700'
-                        : 'bg-amber-50 text-amber-700',
-                    )}
-                  >
-                    {todo.completed ? 'Done' : 'Open'}
-                  </span>
-                </li>
-              ))}
-            </ul>
+            <TaskSearch todos={todos} />
           )}
         </div>
       </div>

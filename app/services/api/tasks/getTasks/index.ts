@@ -1,6 +1,6 @@
 import type { Todo } from '../types'
 
-export const TODOS_URL = 'https://jsonplaceholder.typicode.com/todos?_limit=6'
+export const TODOS_URL = 'https://jsonplaceholder.typicode.com/todos?_limit=1000'
 
 export async function getTodos(): Promise<Todo[]> {
   const response = await fetch(TODOS_URL)

@@ -66,13 +66,17 @@ TanStack Query demo at `/tasks`.
 │   │   └── serverState/index.ts       # TanStack Query client
 │   ├── configs/
 │   │   └── queryKeys/index.ts         # centralized query keys
-│   ├── components/Button/
-│   │   ├── Button.tsx
-│   │   ├── Button.stories.tsx        # Storybook
-│   │   └── tests/
-│   │       ├── Button.story.tsx      # Playwright gallery story
-│   │       ├── Button.test.tsx       # Vitest + RTL
-│   │       └── Button.spec.ts        # Playwright spec
+│   ├── components/
+│   │   ├── business/TaskSearch/
+│   │   │   ├── TaskSearch.tsx
+│   │   │   └── tests/TaskSearch.test.tsx
+│   │   └── common/Button/
+│   │       ├── Button.tsx
+│   │       ├── Button.stories.tsx    # Storybook
+│   │       └── tests/
+│   │           ├── Button.story.tsx  # Playwright gallery story
+│   │           ├── Button.test.tsx   # Vitest + RTL
+│   │           └── Button.spec.ts    # Playwright spec
 │   ├── routes/
 │   │   ├── _index.tsx                 # /
 │   │   ├── other/
@@ -110,9 +114,10 @@ TanStack Query demo at `/tasks`.
 
 The `@/` alias points at `app/` in TypeScript, Vite, Vitest and Playwright.
 
-The folders are layered: `routes/` compose pages, `components/` holds UI, `services/api/` holds
-API business operations, `clients/` wires technical clients such as TanStack Query, `utils/` holds
-generic helpers, and `stores/` holds local UI state. API operations live at
+The folders are layered: `routes/` compose pages, `components/common/` holds shared UI,
+`components/business/` holds domain-specific UI, `services/api/` holds API business operations,
+`clients/` wires technical clients such as TanStack Query, `utils/` holds generic helpers, and
+`stores/` holds local UI state. API operations live at
 `app/services/api/<domain>/<operation>/index.ts` with tests colocated in `tests/`; shared types
 live at the domain root.
 
@@ -257,8 +262,8 @@ gallery page that a separate Vite config serves:
 - `app/**/tests/*.spec.ts` calls `mount('Button/Primary')` and asserts against the page.
 
 Story IDs are derived from the file path and export name. The `tests` segment is ignored, so
-`app/components/Button/tests/Button.story.tsx` becomes `components/Button/<Export>`, and unique
-suffixes such as `Button/Primary` also work.
+`app/components/common/Button/tests/Button.story.tsx` becomes `components/common/Button/<Export>`,
+and unique suffixes such as `Button/Primary` also work.
 
 Use the story itself to record state that would otherwise be a callback crossing the
 Node/browser boundary:

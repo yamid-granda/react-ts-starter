@@ -1,4 +1,4 @@
-import { Button } from '@/components/Button/Button'
+import { Button } from '@/components/common/Button/Button'
 import { useCounterStore } from '@/stores/counter'
 
 const testingLayers = [
