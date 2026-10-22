@@ -85,8 +85,9 @@ TanStack Query demo at `/tasks`.
 │   ├── services/
 │   │   └── api/tasks/
 │   │       ├── types.ts               # shared Todo type
-│   │       └── getTodos/
+│   │       └── getTasks/
 │   │           ├── index.ts           # JSONPlaceholder fetcher
+│   │           ├── useGetTasks.ts     # query options + useQuery hook
 │   │           └── tests/getTodos.test.ts
 │   ├── stores/counter.ts             # Zustand store
 │   ├── test/
@@ -313,23 +314,22 @@ Server state is handled by [TanStack Query](https://tanstack.com/query). The cli
 provided through `QueryClientProvider`. The defaults are a 30 second stale time, one retry, and no
 refetch on window focus.
 
-Define query options next to the API operation so components share the same key and types:
+Query options and the hook live next to the API operation, so components share the same key,
+fetcher and types:
 
 ```tsx
-import { queryOptions, useQuery } from '@tanstack/react-query'
-import { getTodos } from '@/services/api/tasks/getTodos'
+import { useGetTasks } from '@/services/api/tasks/getTasks/useGetTasks'
 
-const todosQuery = queryOptions({
-  queryKey: ['todos'],
-  queryFn: getTodos,
-})
-
-const { data, isPending, isError, refetch } = useQuery(todosQuery)
+const { data, isPending, isError, refetch } = useGetTasks()
 ```
 
+The hook wraps `useQuery` with `todosQuery`; `todosQuery` is also exported for prefetching or
+invalidation.
+
 The `/tasks` page is a complete example with loading, error, retry and refresh states. It calls the
-public JSONPlaceholder API, so running that page needs network access; the unit tests mock the API.
-Because the query is cached for 30 seconds, navigating away and back reuses the previous result.
+public JSONPlaceholder API, so running that page needs network access; the unit tests intercept the
+HTTP request with MSW. Because the query is cached for 30 seconds, navigating away and back reuses
+the previous result.
 
 Use TanStack Query for remote data and keep Zustand for local UI state. React Router loaders are
 still available, but in this SPA setup the demo keeps data fetching inside the route component.
