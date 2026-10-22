@@ -1,30 +1,11 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { getTodos } from '@/services/api/tasks/getTodos'
+import { HttpResponse, http } from 'msw/http'
+import { describe, expect, it, vi } from 'vitest'
+import { MOCK_TODOS_URL, mockTodos } from '@/test/msw/handlers'
+import { server } from '@/test/msw/server'
 import Tasks from '../route'
-
-vi.mock('@/services/api/tasks/getTodos', () => ({
-  getTodos: vi.fn(),
-}))
-
-const getTodosMock = vi.mocked(getTodos)
-
-const todos = [
-  {
-    userId: 1,
-    id: 1,
-    title: 'Write the tasks demo',
-    completed: false,
-  },
-  {
-    userId: 1,
-    id: 2,
-    title: 'Render the task list',
-    completed: true,
-  },
-]
 
 function renderTasks() {
   const queryClient = new QueryClient({
@@ -43,34 +24,34 @@ function renderTasks() {
 }
 
 describe('Tasks', () => {
-  beforeEach(() => {
-    getTodosMock.mockReset()
-  })
-
   it('loads and refreshes tasks', async () => {
     const user = userEvent.setup()
-    getTodosMock.mockResolvedValue(todos)
+    const requestHandler = vi.fn(() => HttpResponse.json(mockTodos))
+    server.use(http.get(MOCK_TODOS_URL, requestHandler))
 
     renderTasks()
 
-    expect(screen.getByText('Loading tasks…')).toBeInTheDocument()
-    expect(await screen.findByText('Write the tasks demo')).toBeInTheDocument()
-    expect(screen.getByText('Open')).toBeInTheDocument()
-    expect(screen.getByText('Done')).toBeInTheDocument()
+    expect(screen.getByText('Loading tasks…')).toBeVisible()
+    expect(await screen.findByText('Write the tasks demo')).toBeVisible()
+    expect(requestHandler).toHaveBeenCalledTimes(1)
+
+    expect(screen.getByText('Open')).toBeVisible()
+    expect(screen.getByText('Done')).toBeVisible()
 
     await user.click(screen.getByRole('button', { name: 'Refresh' }))
-    await waitFor(() => expect(getTodosMock).toHaveBeenCalledTimes(2))
+    expect(requestHandler).toHaveBeenCalledTimes(2)
   })
 
   it('shows an error and retries', async () => {
     const user = userEvent.setup()
-    getTodosMock.mockRejectedValue(new Error('Service unavailable'))
+    const requestHandler = vi.fn(() => new HttpResponse(null, { status: 500 }))
+    server.use(http.get(MOCK_TODOS_URL, requestHandler))
 
     renderTasks()
 
-    expect(await screen.findByRole('alert')).toHaveTextContent('Service unavailable')
+    expect(await screen.findByRole('alert')).toHaveTextContent('Request failed with status 500')
 
     await user.click(screen.getByRole('button', { name: 'Try again' }))
-    await waitFor(() => expect(getTodosMock).toHaveBeenCalledTimes(2))
+    await waitFor(() => expect(requestHandler).toHaveBeenCalledTimes(2))
   })
 })

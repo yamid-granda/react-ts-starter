@@ -8,6 +8,7 @@ A small, opinionated frontend scaffold with the tooling already wired together:
 - **Biome 2** for formatting, linting and import sorting
 - **Storybook 10** for component documentation
 - **Vitest 5** + **Testing Library** + **jsdom** for fast behavior tests
+- **MSW 3** for HTTP-level test mocks
 - **Playwright 1.64** for real-browser component tests
 - **Zustand 5** for local state
 - **TanStack Query 5** for server state
@@ -88,7 +89,11 @@ TanStack Query demo at `/tasks`.
 │   │           ├── index.ts           # JSONPlaceholder fetcher
 │   │           └── tests/getTodos.test.ts
 │   ├── stores/counter.ts             # Zustand store
-│   ├── test/setup.ts                 # jest-dom matchers + RTL cleanup
+│   ├── test/
+│   │   ├── msw/
+│   │   │   ├── handlers.ts            # default URL + method handlers
+│   │   │   └── server.ts              # setupServer(...handlers)
+│   │   └── setup.ts                   # jest-dom, RTL cleanup, MSW lifecycle
 │   ├── utils/cn.ts                   # clsx + tailwind-merge
 │   ├── app.css
 │   ├── root.tsx                      # document shell, nav, <Outlet />
@@ -210,8 +215,11 @@ const Stub = createRoutesStub([
 render(<Stub initialEntries={['/']} />)
 ```
 
-Tests that render a query page wrap it in a fresh `QueryClientProvider` with retries disabled, and
-mock the API module or `fetch` so no network request is made.
+Tests that render a query page wrap it in a fresh `QueryClientProvider` with retries disabled.
+Network requests are intercepted by MSW instead of mocking service modules. Handlers live in
+`app/test/msw/handlers.ts` and match by URL + method, so route tests keep working if a service
+function is renamed. Individual tests override handlers with `server.use(...)`, and an unhandled
+request fails the suite.
 
 ### Storybook
 

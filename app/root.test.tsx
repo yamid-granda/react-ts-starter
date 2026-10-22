@@ -1,8 +1,7 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { createRoutesStub } from 'react-router'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { getTodos } from '@/services/api/tasks/getTodos'
+import { beforeEach, describe, expect, it } from 'vitest'
 import { useCounterStore } from '@/stores/counter'
 import App from './root'
 import Home from './routes/_index'
@@ -10,12 +9,6 @@ import OtherLayout from './routes/other/route'
 import Other from './routes/other._index/route'
 import OtherInnerPage from './routes/other.inner-page/route'
 import Tasks from './routes/tasks/route'
-
-vi.mock('@/services/api/tasks/getTodos', () => ({
-  getTodos: vi.fn(),
-}))
-
-const getTodosMock = vi.mocked(getTodos)
 
 function renderApp(initialEntries: string[] = ['/']) {
   const Stub = createRoutesStub([
@@ -43,15 +36,6 @@ function renderApp(initialEntries: string[] = ['/']) {
 describe('App', () => {
   beforeEach(() => {
     useCounterStore.setState(useCounterStore.getInitialState(), true)
-    getTodosMock.mockReset()
-    getTodosMock.mockResolvedValue([
-      {
-        userId: 1,
-        id: 1,
-        title: 'Write the tasks demo',
-        completed: false,
-      },
-    ])
   })
 
   it('increments and resets the counter', async () => {
