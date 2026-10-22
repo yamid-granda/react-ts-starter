@@ -64,6 +64,8 @@ TanStack Query demo at `/tasks`.
 ├── app/
 │   ├── clients/
 │   │   └── serverState/index.ts       # TanStack Query client
+│   ├── configs/
+│   │   └── queryKeys/index.ts         # centralized query keys
 │   ├── components/Button/
 │   │   ├── Button.tsx
 │   │   ├── Button.stories.tsx        # Storybook
@@ -315,10 +317,14 @@ provided through `QueryClientProvider`. The defaults are a 30 second stale time,
 refetch on window focus.
 
 Query options and the hook live next to the API operation, so components share the same key,
-fetcher and types:
+fetcher and types. Query keys are centralized in `app/configs/queryKeys/index.ts`:
 
 ```tsx
+import { getTodosQueryKey } from '@/configs/queryKeys'
 import { useGetTasks } from '@/services/api/tasks/getTasks/useGetTasks'
+
+// Inside the operation's query options:
+queryKey: getTodosQueryKey(),
 
 const { data, isPending, isError, refetch } = useGetTasks()
 ```

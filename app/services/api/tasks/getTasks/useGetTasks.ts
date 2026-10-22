@@ -1,8 +1,9 @@
 import { queryOptions, useQuery } from '@tanstack/react-query'
+import { getTodosQueryKey } from '@/configs/queryKeys'
 import { getTodos } from './index'
 
 export const todosQuery = queryOptions({
-  queryKey: ['todos'],
+  queryKey: getTodosQueryKey(),
   queryFn: getTodos,
 })
 
